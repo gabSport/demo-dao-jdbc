@@ -16,7 +16,7 @@ public class SellerDaoJDBC implements SellerDao {
 	
 	private Connection conn; // vou ter esse obj conn a disposicao em qqr lugar da classe SellerDaoJdbc
 
-	public SellerDaoJDBC(Connection conn) {
+	public SellerDaoJDBC(Connection conn) { // o nosso Dao vai ter uma dependencia com a conexao.
 		this.conn = conn;
 	}
 
@@ -41,7 +41,7 @@ public class SellerDaoJDBC implements SellerDao {
 		ResultSet rs = null;
 		try {
 			
-			st = conn.prepareStatement("SELECT seller.*, department.Name as DepName "
+			st = conn.prepareStatement("SELECT seller.*, department.Name as DepName " // estou buscando todos os campos do seller + nome do departament
 					+ "FROM seller INNER JOIN department "
 					+ "ON seller.DepartmentId = department.Id "
 					+ "WHERE seller.id = ?");
@@ -49,23 +49,13 @@ public class SellerDaoJDBC implements SellerDao {
 			st.setInt(1, id);
 			rs = st.executeQuery(); // o comando SQL acima vai ser executado e o resultado vai cair no rs
 			if (rs.next()) {
-				Department dep = new Department();
-				dep.setId(rs.getInt("DepartmentId"));
-				dep.setName(rs.getString("DepName"));
-				Seller obj = new Seller();
-				obj.setId(rs.getInt("Id"));
-				obj.setName(rs.getString("Name"));
-				obj.setEmail(rs.getString("Email"));
-				obj.setBirthDate(rs.getDate("BirthDate"));
-				obj.setBaseSalary(rs.getDouble("BaseSalary"));
-				obj.setDepartment(dep);
+				Department dep = instantiateDepartment(rs);
+				Seller obj = instantiateSeller(rs, dep);
 				return obj;
 			}
 			else {
-				return null;
+				return null; // se nao existir nenhum vendedor com esse id, retorna nulo
 			}
-			
-			
 		}
 		catch (SQLException e) {
 			throw new DbException(e.getMessage());
@@ -73,9 +63,25 @@ public class SellerDaoJDBC implements SellerDao {
 		finally {
 			DB.closeStatement(st);
 			DB.closeResultSet(rs);
-		}
+		}	
+	}
 		
-		
+	private Seller instantiateSeller(ResultSet rs, Department dep) throws SQLException {
+		Seller obj = new Seller(); // instanciei um Seller, dpois setei seus valores abaixo:
+		obj.setId(rs.getInt("Id"));
+		obj.setName(rs.getString("Name"));
+		obj.setEmail(rs.getString("Email"));
+		obj.setBirthDate(rs.getDate("BirthDate"));
+		obj.setBaseSalary(rs.getDouble("BaseSalary"));
+		obj.setDepartment(dep);
+		return obj;
+	}
+
+	private Department instantiateDepartment(ResultSet rs) throws SQLException {
+		Department dep = new Department(); // instanciei um Department, depois setei os valores dele abaixo:
+		dep.setId(rs.getInt("DepartmentId"));
+		dep.setName(rs.getString("DepName"));
+		return dep;
 	}
 
 	@Override
