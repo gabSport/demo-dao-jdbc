@@ -89,8 +89,41 @@ public class SellerDaoJDBC implements SellerDao {
 
 	@Override
 	public List<Seller> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		try {
+			
+			st = conn.prepareStatement("SELECT seller.*, department.Name as DepName "
+					+ "FROM seller INNER JOIN department "
+					+ "ON seller.DepartmentId = department.Id "
+					+ "ORDER BY Name");
+			
+			rs = st.executeQuery();
+			
+			List<Seller> list = new ArrayList<Seller>();
+			Map<Integer, Department> map = new HashMap<>();
+			
+			while (rs.next()) {
+				
+				Department dep = map.get(rs.getInt("DepartmentId"));
+				if (dep == null) {
+					
+					dep = instantiateDepartment(rs);
+					map.put(rs.getInt("DepartmentId"), dep);
+				}
+				
+				Seller obj = instantiateSeller(rs, dep);
+				list.add(obj);
+			}
+			return list;
+		}
+		catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}	
 	}
 
 	@Override
@@ -119,16 +152,16 @@ public class SellerDaoJDBC implements SellerDao {
 				// vou no map, tento buscar com o metodo get, algum departamento que tem esse id "DepartmentId"
 				
 				if (dep == null) { // se for null, siginifica que ainda nao existia;
-					dep = instantiateDepartment(rs); // ai vou instanciar o departamento
-					map.put(rs.getInt("DepartmentId"), dep); // agora vou salvar esse departamento dentro do map, para que na prox vez, 
-					// eu possa verificar que ele ja existe
 					
+					dep = instantiateDepartment(rs); // ai vou instanciar o departamento passando o rs
+					map.put(rs.getInt("DepartmentId"), dep); // agora vou salvar esse departamento dentro do map, para que na prox vez, 
+					// eu possa verificar que ele ja existe	
 				}
 
-				Seller obj = instantiateSeller(rs, dep); // o vendedor (Seller),
-				list.add(obj); // adicionar esse vendedor a list.
+				Seller obj = instantiateSeller(rs, dep); // instancio o vendedor (Seller),
+				list.add(obj); // adiciono esse vendedor a list.
 			}
-			return list; // no final, returna minha List.
+			return list; // no final, retorno minha List.
 			
 		}
 		catch (SQLException e) {
