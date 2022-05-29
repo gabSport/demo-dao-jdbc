@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +26,42 @@ public class SellerDaoJDBC implements SellerDao {
 
 	@Override
 	public void insert(Seller obj) {
-		// TODO Auto-generated method stub	
+		PreparedStatement st = null;
+		try {
+			
+			st = conn.prepareStatement("INSERT INTO seller "
+					+ "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
+					+ "VALUES "
+					+ "(?, ?, ?, ?, ?)",
+					Statement.RETURN_GENERATED_KEYS); // retornar o Id do novo Seller inserido
+			
+			st.setString(1, obj.getName());
+			st.setString(2, obj.getEmail());
+			st.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+			st.setDouble(4, obj.getBaseSalary());
+			st.setInt(5, obj.getDepartment().getId()); // Id do departamento "desse" vendedor (DepartmentId)
+			
+			int rowsAffected = st.executeUpdate();
+			
+			if (rowsAffected > 0) {
+				ResultSet rs = st.getGeneratedKeys();
+				if (rs.next()) { // if pq estou inserido apenas um dado
+					int id = rs.getInt(1); // posicao 1, pois vai ser a primeira coluna das chaves(Keys)
+					obj.setId(id); // atribui esse id gerado, dentro do meu objeto obj
+				}
+				DB.closeResultSet(rs);
+			}
+			else {
+				throw new DbException("Unexpected error! No rows affected!"); // como estou inserindo algo, e se nao tiver nenhuma linha afetada, entao...
+			}                                                                 // alguma coisa errada acontenceu e tenho que lançar uma excessao.
+			
+		}
+		catch (SQLException e) {
+			throw new DbException(e.getMessage());	
+		}	
+		finally {
+			DB.closeStatement(st);
+		}
 	}
 
 	@Override
@@ -51,7 +87,9 @@ public class SellerDaoJDBC implements SellerDao {
 			
 			st.setInt(1, id);
 			rs = st.executeQuery(); // o comando SQL acima vai ser executado e o resultado vai cair no rs
+			
 			if (rs.next()) {
+				
 				Department dep = instantiateDepartment(rs);
 				Seller obj = instantiateSeller(rs, dep);
 				return obj;
@@ -66,7 +104,7 @@ public class SellerDaoJDBC implements SellerDao {
 		finally {
 			DB.closeStatement(st);
 			DB.closeResultSet(rs);
-		}	
+		}		
 	}
 		
 	private Seller instantiateSeller(ResultSet rs, Department dep) throws SQLException {
@@ -161,8 +199,7 @@ public class SellerDaoJDBC implements SellerDao {
 				Seller obj = instantiateSeller(rs, dep); // instancio o vendedor (Seller),
 				list.add(obj); // adiciono esse vendedor a list.
 			}
-			return list; // no final, retorno minha List.
-			
+			return list; // no final, retorno minha List.	
 		}
 		catch (SQLException e) {
 			throw new DbException(e.getMessage());
