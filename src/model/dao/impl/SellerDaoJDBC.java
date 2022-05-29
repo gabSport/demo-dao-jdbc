@@ -1,6 +1,7 @@
 package model.dao.impl;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import db.DB;
 import db.DbException;
 import model.dao.SellerDao;
@@ -44,17 +44,16 @@ public class SellerDaoJDBC implements SellerDao {
 			int rowsAffected = st.executeUpdate();
 			
 			if (rowsAffected > 0) {
-				ResultSet rs = st.getGeneratedKeys();
+				ResultSet rs = st.getGeneratedKeys(); // getGeneratedKeys() pra saber o codigo do novo registro inserido;
 				if (rs.next()) { // if pq estou inserido apenas um dado
 					int id = rs.getInt(1); // posicao 1, pois vai ser a primeira coluna das chaves(Keys)
-					obj.setId(id); // atribui esse id gerado, dentro do meu objeto obj
+					obj.setId(id); // peguei esse id gerado e o atribui dentro do meu obj
 				}
 				DB.closeResultSet(rs);
 			}
 			else {
 				throw new DbException("Unexpected error! No rows affected!"); // como estou inserindo algo, e se nao tiver nenhuma linha afetada, entao...
-			}                                                                 // alguma coisa errada acontenceu e tenho que lançar uma excessao.
-			
+			}                                                                 // alguma coisa errada acontenceu e tenho que lançar uma excessao.	
 		}
 		catch (SQLException e) {
 			throw new DbException(e.getMessage());	
@@ -66,7 +65,29 @@ public class SellerDaoJDBC implements SellerDao {
 
 	@Override
 	public void update(Seller obj) {
-		// TODO Auto-generated method stub
+		PreparedStatement st = null;
+		try {
+			
+			st = conn.prepareStatement("UPDATE seller "
+					+ "SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? "
+					+ "WHERE Id = ?");
+			
+			st.setString(1, obj.getName());
+			st.setString(2, obj.getEmail());
+			st.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+			st.setDouble(4, obj.getBaseSalary());
+			st.setInt(5, obj.getDepartment().getId());
+			st.setInt(6, obj.getId()); // essa sexta interrogacao é o Id do vendedor. Como esta acima: WHERE Id = ?
+			
+			st.executeUpdate(); // vai executar o UPDATE;
+			
+		}
+		catch (SQLException e) { // se aconctecer alguma excessao, vai ser capturada e lanço uma excessao.
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			DB.closeStatement(st);
+		}
 	}
 
 	@Override

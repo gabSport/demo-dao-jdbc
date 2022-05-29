@@ -2,7 +2,6 @@ package application;
 
 import java.util.Date;
 import java.util.List;
-
 import model.dao.DaoFactory;
 import model.dao.SellerDao;
 import model.entities.Department;
@@ -38,7 +37,14 @@ public class Main {
 		System.out.println();
 		System.out.println("==== TEST 4: seller insert ====");
 		Seller sell = new Seller(null, "Greg", "greg@gmail.com", new Date(), 4000.0, dep); // instanciei um novo Seller;
-		sellerDao.insert(sell);
+		sellerDao.insert(sell); // mandei inserir esse novo Seller instanciado no banco de dados;
 		System.out.println("Inserted! New id = " + sell.getId());
+		
+		System.out.println();
+		System.out.println("==== TEST 5: seller update ====");
+		seller = sellerDao.findById(1); // vou carregar os dados do vendedor cujo Id = 1;
+		seller.setName("Martha Waine"); // agora vou setar para modificar o nome dele para "Martha Waine"
+		sellerDao.update(seller); // em seguida, salvo esse seller, atualizando os dados dele com o update;
+		System.out.println("Update completed");
 	}
 }
