@@ -24,10 +24,19 @@ public class Main2 {
 			System.out.println(obj);
 		}
 		
+		/*
 		System.out.println();
 		System.out.println("==== TEST 3: department insert ====");
 		Department newDep = new Department(null, "Music");
 		depDao.insert(newDep);
 		System.out.println("Inserted! New id = " + newDep.getId());
+		*/
+		
+		System.out.println();
+		System.out.println("==== TEST 4: department update ====");
+		Department dep2 = depDao.findById(1); // carrego os dados do department cujo id = 1;
+		dep2.setName("Food"); // setei para mudar o nome desse departamento 1 para "Food";
+		depDao.update(dep2); // chamei o depDao.update para fazer a atualizacao do nome.
+		System.out.println("Update completed!");
 	}
 }
