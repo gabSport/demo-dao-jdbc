@@ -1,6 +1,8 @@
 package application;
 
 import java.util.List;
+import java.util.Scanner;
+
 import model.dao.DaoFactory;
 import model.dao.DepartmentDao;
 import model.entities.Department;
@@ -8,6 +10,8 @@ import model.entities.Department;
 public class Main2 {
 
 	public static void main(String[] args) {
+		
+		Scanner sc = new Scanner(System.in);
 		
 		
 		DepartmentDao depDao = DaoFactory.createDepartmentDao(); // instancio o DepartmentDao chamando o DaoFactory, dessa forma, o programa conhece
@@ -38,5 +42,12 @@ public class Main2 {
 		dep2.setName("Food"); // setei para mudar o nome desse departamento 1 para "Food";
 		depDao.update(dep2); // chamei o depDao.update para fazer a atualizacao do nome.
 		System.out.println("Update completed!");
+		
+		System.out.println();
+		System.out.println("==== TEST 5: department delete ====");
+		System.out.print("Enter id for delete test: ");
+		int id =  sc.nextInt();
+		depDao.deleteById(id);
+		System.out.println("Delete completed!");
 	}
 }
